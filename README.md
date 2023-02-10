@@ -1,6 +1,6 @@
 # dojo
 
-![Alt Text](https://tenor.com/bqu7Y.gif)
+![Alt Text](https://tenor.com/view/bring-it-are-you-ready-lets-do-this-gif-18670172)
 
 ## Setup
 1. Clone repo
