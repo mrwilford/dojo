@@ -1,3 +1,128 @@
+class Node {
+    constructor(value) {
+      this.value = value;
+      this.left = null;
+      this.right = null;
+      this.height = 1;
+    }
+  }
+  
+  class AVLTree {
+    constructor() {
+      this.root = null;
+    }
+  
+    insert(value) {
+      this.root = this.insertNode(this.root, value);
+    }
+  
+    insertNode(node, value) {
+      if (!node) {
+        return new Node(value);
+      }
+  
+      if (value < node.value) {
+        node.left = this.insertNode(node.left, value);
+      } else if (value > node.value) {
+        node.right = this.insertNode(node.right, value);
+      } else {
+        return node;
+      }
+  
+      node.height = 1 + Math.max(this.getHeight(node.left), this.getHeight(node.right));
+  
+      let balance = this.getBalance(node);
+  
+      if (balance > 1 && value < node.left.value) {
+        return this.rightRotate(node);
+      }
+  
+      if (balance < -1 && value > node.right.value) {
+        return this.leftRotate(node);
+      }
+  
+      if (balance > 1 && value > node.left.value) {
+        node.left = this.leftRotate(node.left);
+        return this.rightRotate(node);
+      }
+  
+      if (balance < -1 && value < node.right.value) {
+        node.right = this.rightRotate(node.right);
+        return this.leftRotate(node);
+      }
+  
+      return node;
+    }
+  
+    getHeight(node) {
+      if (!node) {
+        return 0;
+      }
+      return node.height;
+    }
+  
+    getBalance(node) {
+      if (!node) {
+        return 0;
+      }
+      return this.getHeight(node.left) - this.getHeight(node.right);
+    }
+  
+    leftRotate(x) {
+      let y = x.right;
+      let T2 = y.left;
+  
+      y.left = x;
+      x.right = T2;
+  
+      x.height = 1 + Math.max(this.getHeight(x.left), this.getHeight(x.right));
+      y.height = 1 + Math.max(this.getHeight(y.left), this.getHeight(y.right));
+  
+      return y;
+    }
+  
+    rightRotate(y) {
+      let x = y.left;
+      let T2 = x.right;
+  
+      x.right = y;
+      y.left = T2;
+  
+      y.height = 1 + Math.max(this.getHeight(y.left), this.getHeight(y.right));
+      x.height = 1 + Math.max(this.getHeight(x.left), this.getHeight(x.right));
+  
+      return x;
+    }
+  }
+
+//instanciate a new object passing in number 6 argument
+const tree = new AVLTree(); 
+//add method is invoked, passing in 5
+tree.insert(5);
+tree.insert(9);
+tree.insert(3);
+tree.insert(4);
+tree.insert(0);
+tree.insert(8);
+tree.insert(7);
+tree.insert(2);
+tree.insert(6);
+tree.insert(1);
+tree.insert(10);
+console.log(tree)
+
+console.log(tree.getHeight(tree.root))
+
+const replacer = (key, val) => 'parent' == key ? undefined : val;
+console.log(JSON.stringify(tree, replacer, '\t'));
+// tree.search(10);
+/*console.log(tree.search(4))
+console.log(tree.search(6))
+console.log(tree.getHeight()) */
+
+// console.log(tree.getHeight(tree.root.right.left.left))
+
+
 //My shitty imprementation
 
 /* AVL tree updated */
