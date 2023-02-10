@@ -1,2 +1,11 @@
 {
+	/**
+   * EDITOR
+   */
+	"editor.formatOnSave": true,
+	"editor.codeActionsOnSave": {
+		"source.fixAll.eslint": true,
+		"source.addMissingImports": true,
+		"source.organizeImports": true, //false,
+	},
 }
