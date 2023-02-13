@@ -2,22 +2,27 @@ import { assert } from './assert.js';
 
 /** Tree */
 export class Tree{
-  _elem = undefined;// allow 'null' to be valid data but not 'undefined'
+  _elem = undefined;//allow 'null' to be valid data but not 'undefined'
   _left = null;
   _right = null;
   _parent = null;
 
-  /** Create a new Tree. */
-  constructor(...elements){ elements.forEach((elem) => this.add(elem)) }
+  /** Create a balanced Tree from the given elements.
+   * To add additional elements and maintain balance, use `addBalanced`.
+   * For an unbalanced tree, construct an empty tree then `add` elements.
+   * @constructor
+   * @param {Array} [elements]
+   */
+  constructor(...elements){ this.addBalanced(...elements) }
 
-  // /Accessors
+  ///Accessors
   get element(){ return this._elem }
   set element(v){ this._elem = v }
   get left(){ return this._left }
   get right(){ return this._right }
   get parent(){ return this._parent }
 
-  // /Calculated getters
+  ///Calculated getters
   get root(){ return this._parent ? this._parent.root : this }
   get isLeft(){ return this._parent ? this._parent._left === this : false }
   get isRight(){ return this._parent ? this._parent._right === this : false }
@@ -106,23 +111,60 @@ export class Tree{
   balance(){
     const heightDiff = this.heightDiff;
     if(1 < heightDiff){
-      // left subtree is higher than the right subtree
+      //left subtree is higher than the right subtree
       const leftHeightDiff = this._left ? this._left.heightDiff : -1;
       if(0 < leftHeightDiff) rotateRR(this);
       else if(leftHeightDiff < 0) rotateLR(this);
     }else if(heightDiff < -1){
-      // right subtree is higher than the left subtree
+      //right subtree is higher than the left subtree
       const rightHeightDiff = this._right ? this._right.heightDiff : -1;
       if(rightHeightDiff < 0) rotateLL(this);
       else if(0 < rightHeightDiff) rotateRL(this);
-    }// else if
+    }//else if
     return this;
-  }// balance
+  }//balance
 
-  /** Add an element to the tree with optional rebalancing.
-   * @param {*} elem New element to add to the tree.
-   * @param {Boolean} [rebalance] Whether to rebalance this subtree (default:true).
-   * @return {Tree} This subtree.
+  /** Add an element to the tree without rebalancing.
+   * @param {*} element New element to add to the tree.
+   * @param {Array} moreElements Additional elements to add to the tree.
+   * @return {Tree} The newly added subtree node for the first given `element`.
+   * @example ```
+   * // 1             1
+   * //  \             \
+   * //   3  -add(2)→   3
+   * //                /
+   * //               2*
+   * const tree = new Tree(1, 3);
+   * tree.add(2).element;//2
+   * tree.preorder();//[1, 3, 2]
+   * tree.postorder();//[2, 3, 1]
+   * ```
+   */
+  add(element, ...moreElements){
+    if(undefined===element) return this;
+    if(undefined===this._elem){
+      assert(null===this._left && null===this._right);
+      this._elem = element;
+      this.add(...moreElements);
+      return this;
+    }//if
+    let newNode;
+    if(element <= this._elem){
+      if(element == this._elem) console.warn(`Adding duplicate element ${element} as left child.`);
+      if(this._left) return this._left.add(element);
+      newNode = this._left = new Tree(element);
+    }else{
+      if(this._right) return this._right.add(element);
+      newNode = this._right = new Tree(element);
+    }//else
+    newNode._parent = this;
+    this.add(...moreElements);
+    return newNode;
+  }//add
+
+  /** Add an element to the tree and rebalance the parent.
+   * @param {Array} elements New elements to add to the tree.
+   * @returns {Tree} The newly added subtree node for the first given element.
    * @example ```
    * // 1             1
    * //  \             \                 2*
@@ -130,39 +172,19 @@ export class Tree{
    * //                /               1    3
    * //               2*
    * const tree = new Tree(1, 3);
-   * tree.add(2);
+   * tree.addBalanced(2).element;//2
    * tree.preorder();//[2, 1, 3]
    * tree.postorder();//[1, 3, 2]
    * ```
    */
-  add(elem, rebalance = true){
-    if(undefined===elem) return this;
-    if(undefined===this._elem){
-      assert(null===this._left && null===this._right);
-      this._elem = elem;
-      return this;
-    }// if
-    let newNode;
-    if(elem < this._elem){
-      if(this._left) newNode = this._left.add(elem, rebalance);
-      else{
-        newNode = this._left = new Tree(elem);
-        newNode._parent = this;
-        if(rebalance && this._parent) this._parent.balance();
-      }// else
-    }else{
-      if(this._right) newNode = this._right.add(elem, rebalance);
-      else{
-        newNode = this._right = new Tree(elem);
-        newNode._parent = this;
-        if(rebalance && this._parent) this._parent.balance();
-      }// else
-    }// else
-    return this;
-  }// add
-}// Tree
+  addBalanced(...elements){
+    const newNode = this.add(...elements);
+    this.balance();
+    return newNode;
+  }//addBalanced
+}//Tree
 
-/// Private, non-exported function
+///Private, non-exported function
 
 /** Rotate this subtree to solve lopsidedness to the right.
  * @return {Tree} Resulting subtree after the rotation.
@@ -182,7 +204,7 @@ export class Tree{
  */
 function rotateLL(tree){
   if(!tree._right) return tree;
-  [ tree._elem, tree._right._elem ] = [ tree._right._elem, tree._elem ];// swap
+  [ tree._elem, tree._right._elem ] = [ tree._right._elem, tree._elem ];//swap
   tree._right._left = tree._left;
   if(tree._left) tree._left._parent = tree._right;
   if(tree._right._right) tree._right._right._parent = tree;
@@ -190,7 +212,7 @@ function rotateLL(tree){
   tree._right = tree._right._right;
   tree._right._right = tree._left._right = null;
   return tree;
-}// rotateLL
+}//rotateLL
 
 /** Rotate this subtree to solve lopsidedness to the left.
  * @return {Tree} Resulting subtree after the rotation.
@@ -210,7 +232,7 @@ function rotateLL(tree){
  */
 function rotateRR(tree){
   if(!tree._left) return tree;
-  [ tree._elem, tree._left._elem ] = [ tree._left._elem, tree._elem ];// swap
+  [ tree._elem, tree._left._elem ] = [ tree._left._elem, tree._elem ];//swap
   tree._left._right = tree._right;
   if(tree._right) tree._right._parent = tree._left;
   if(tree._left._left) tree._left._left._parent = tree;
@@ -218,7 +240,7 @@ function rotateRR(tree){
   tree._left = tree._left._left;
   tree._left._left = tree._right._left = null;
   return tree;
-}// rotateRR
+}//rotateRR
 
 /** Rotate this subtree to solve left-right lopsidedness.
  * @return {Tree} Resulting subtree after the rotation.
@@ -239,7 +261,7 @@ function rotateRR(tree){
 function rotateLR(tree){
   if(tree._left) rotateLL(tree._left);
   return rotateRR(tree);
-}// rotateLR
+}//rotateLR
 
 /** Rotate this subtree to solve right-left lopsidedness.
  * @return {Tree} Resulting subtree after the rotation.
@@ -260,6 +282,6 @@ function rotateLR(tree){
 function rotateRL(tree){
   if(tree._right) rotateRR(tree._right);
   return rotateLL(tree);
-}// rotateRL
+}//rotateRL
 
 ///* EOF *///
